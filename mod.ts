@@ -30,3 +30,68 @@ await Deno.writeFile("mod.png",
     plane.map(n => Math.log(n || 1)/6*255)
     .grayscale().upscale(10).toPng()
 )
+
+const district =
+(max: number) =>
+(plane: Plane<number>) => {
+    const sections: {
+        set: Set<string>,
+        sum: number,
+    }[] = []
+    
+    let entries = plane.raw.entries().toArray()
+        .toSorted((a, b) => a[1]-b[1])
+    
+    while (entries.length) {
+        const proposals = sections.map((section, sectionId) =>
+            new Set(section.set.values().flatMap(coordStr => {
+                const [x, y] = coordStr.split(";").map(Number)
+                return [
+                    [x+1, y],
+                    [x, y+1],
+                    [x-1, y],
+                    [x, y-1],
+                ]
+                .filter(([x, y]) =>
+                       0 <= x && x < plane.w
+                    && 0 <= y && y < plane.h
+                )
+                .map(x => x.join(";"))
+            })).difference(section.set)
+            .values()
+            .map(coordStr => ({
+                sectionId,
+                coordStr,
+                sum: section.sum+plane.raw.get(coordStr)!,
+            }))
+            .toArray()
+            .toSorted((a, b) => a.sum-b.sum)[0]
+        ).toSorted((a, b) => a.sum-b.sum)
+        
+        if (proposals.length && proposals[0].sum < entries[0][1] && proposals[0].sum <= max) {
+            const { sectionId, coordStr, sum } = proposals[0]
+            sections[sectionId].set.add(coordStr)
+            sections[sectionId].sum = sum
+            entries = entries.filter(([c]) => c != coordStr)
+        } else {
+            const nu = entries.shift()!
+            sections.push({
+                set: new Set([nu[0]]),
+                sum: nu[1],
+            })
+        }
+    }
+    const dis = new Plane<[number, number, number, number]>(plane.w, plane.h)
+    sections.forEach(section => {
+        const color = [...arr(3).map(x => Math.floor(Math.random()*255)), 255] as [number, number, number, number]
+        section.set.values().forEach(coordStr => {
+            dis.raw.set(coordStr, color)
+        })
+    })
+    return dis
+}
+
+const res = district(100000)(plane)
+await Deno.writeFile("district.png",
+    res.upscale(10).toPng()
+)
