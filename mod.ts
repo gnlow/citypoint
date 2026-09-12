@@ -8,8 +8,8 @@ export const grow =
     arr(n).forEach(i => {
         const x0 = Dist.range(0, plane.w).pick(""+i)
         const y0 = Dist.range(0, plane.h).pick(""+i)
-        const x1 = Dist.n(x0, 2).map(x => mod(Math.floor(x), plane.w)).pick(""+i)
-        const y1 = Dist.n(y0, 2).map(y => mod(Math.floor(y), plane.h)).pick(""+i)
+        const x1 = Dist.n(x0, 3).map(x => mod(Math.floor(x), plane.w)).pick(""+i)
+        const y1 = Dist.n(y0, 3).map(y => mod(Math.floor(y), plane.h)).pick(""+i)
         const cnt = plane.get([x0, y0])!
             * Dist.ll(0.9, 1).pick(""+i)
         
@@ -17,16 +17,16 @@ export const grow =
     })
 }
 
-const plane = new Plane<number>(10, 10)
+const plane = new Plane<number>(20, 20)
 
-arr(10).forEach(x => arr(10).forEach(y =>
+arr(20).forEach(x => arr(20).forEach(y =>
     plane.set([x, y], 100)
 ))
 
-grow(1000)(plane)
+grow(4000)(plane)
 
 console.log(plane.raw.values().toArray().toSorted((a, b)=>b-a))
 await Deno.writeFile("mod.png",
-    plane.map(n => Math.log(n || 1)/5*255)
+    plane.map(n => Math.log(n || 1)/6*255)
     .grayscale().upscale(10).toPng()
 )
