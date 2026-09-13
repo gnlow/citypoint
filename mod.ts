@@ -123,3 +123,40 @@ export const genTree =
         })
     })
 }
+
+export class CityPoint {
+    readonly w
+    readonly h
+    readonly levels
+    readonly intensity
+    readonly valuePlane
+    readonly districtPlane
+    constructor(o: {
+        w: number,
+        h: number,
+        levels?: number[],
+        intensity?: number,
+    }) {
+        o.levels ??= [20e4, 80e4, 300e4]
+        o.intensity ??= 10
+        
+        const { w, h, levels, intensity } = o
+        this.w = o.w
+        this.h = o.h
+        this.levels = o.levels
+        this.intensity = o.intensity
+        
+        const plane = new Plane<number>(w, h)
+
+        arr(w).forEach(x => arr(h).forEach(y =>
+            plane.set([x, y], 100)
+        ))
+        
+        grow(w*h*intensity)(plane)
+        
+        const leveled = level(levels)(plane)
+        
+        this.valuePlane = plane
+        this.districtPlane = leveled
+    }
+}

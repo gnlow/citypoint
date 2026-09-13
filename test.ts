@@ -1,38 +1,25 @@
 import {
-    Plane,
-    arr,
-    grow,
-    level,
-    genTree,
+    CityPoint,
     Dist,
+    Plane,
 } from "./mod.ts"
 import * as oklch from "https://gnlow.dev/oklch@0.1.3"
 
-const w = 40
-const h = 20
-const plane = new Plane<number>(w, h)
+const cityPoint = new CityPoint({
+    w: 40,
+    h: 20,
+})
 
-arr(w).forEach(x => arr(h).forEach(y =>
-    plane.set([x, y], 100)
-))
-
-grow(w*h*10)(plane)
-
-console.log(plane.raw.values().toArray().toSorted((a, b)=>b-a))
 await Deno.writeFile("mod.png",
-    plane.map(n => Math.log(n || 1)/6*255)
+    cityPoint.valuePlane.map(n => Math.log(n || 1)/6*255)
     .grayscale().upscale(10).toPng()
 )
-
-const leveled = level([20e4, 80e4, 300e4])(plane)
-
-console.log(genTree(leveled, plane))
 
 const hue = Dist.range(0, 360)
 const tweak = Dist.n(0, 0.01)
 const light = Dist.f(x => 0.5+x*0.3)
 
-const res: Plane<[number, number, number, number]> = leveled
+const res: Plane<[number, number, number, number]> = cityPoint.districtPlane
     .map(v => v?.reverse())
     .map(v =>
         [...oklch.rgb(
