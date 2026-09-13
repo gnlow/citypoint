@@ -37,6 +37,8 @@ await Deno.writeFile("district.png",
 
 const districts = cityPoint.getDistricts()
 
+console.log(districts.map(x => x.length))
+
 districts[3].forEach(kingdom => {
     console.log(`Kingdom ${kingdom.name}: ${kingdom.population}`)
     kingdom.children.forEach(duchy => {

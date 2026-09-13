@@ -207,9 +207,10 @@ export class CityPoint {
         const cities = [] as City[]
         const districtMaps = this.levels.map((_, i) => new Map<number, District>)
         entries.forEach(([coord, path]) => {
+            path = path.toReversed()
             const city = new City(coord, this.valuePlane.raw.get(coord)!, coord)
             cities.push(city)
-            path.reverse().forEach((id, level) => {
+            path.forEach((id, level) => {
                 const liege = districtMaps[level]?.getOrInsert(id, new Realm(""+id, new Set))
                 const child = 
                     districtMaps[level-1]?.getOrInsert(path[level-1], new Realm(""+path[level-1], new Set))

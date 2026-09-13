@@ -27,7 +27,6 @@ const getBorders =
                 map.getOrInsert((x+0.5)+";"+y, []).push((x-0.5)+";"+y)
             }
         })
-        console.log(map)
         const start = map.keys().take(1).toArray()[0]
         let pos = start
         const path = [pos]
@@ -48,6 +47,7 @@ const getBorders =
 export const render =
 (cityPoint: CityPoint) => {
     const districts = cityPoint.getDistricts()
+    console.log(districts.map(x => x.length))
     return `
     <svg xmlns="http://www.w3.org/2000/svg"
         width="400"
@@ -58,11 +58,17 @@ export const render =
             stroke="black"
             stroke-width="0.2"
         />
-        ${districts[2].map(kingdom => `<path
+        ${districts[3].map(kingdom => `<path
             d="${getBorders(kingdom)}"
             stroke="black"
             stroke-width="0.2"
             fill="oklch(0.7 0.1 ${Dist.range(0, 360).pick("")})"
+        />`).join("")}
+        ${districts[2].map(duchy => `<path
+            d="${getBorders(duchy)}"
+            stroke="black"
+            stroke-width="0.1"
+            fill="none"
         />`).join("")}
     </svg>
     `
