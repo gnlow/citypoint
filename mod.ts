@@ -16,14 +16,15 @@ export const grow =
         plane.add([x1, y1], Math.floor(cnt*0.5))
     })
 }
+const w = 40
+const h = 20
+const plane = new Plane<number>(w, h)
 
-const plane = new Plane<number>(20, 20)
-
-arr(20).forEach(x => arr(20).forEach(y =>
+arr(w).forEach(x => arr(h).forEach(y =>
     plane.set([x, y], 100)
 ))
 
-grow(4000)(plane)
+grow(w*h*10)(plane)
 
 console.log(plane.raw.values().toArray().toSorted((a, b)=>b-a))
 await Deno.writeFile("mod.png",
@@ -95,7 +96,7 @@ const district =
     return dis
 }
 
-const res = district(200000)(plane)
+const res = district(800000)(plane)
 await Deno.writeFile("district.png",
     res.upscale(10).toPng()
 )
