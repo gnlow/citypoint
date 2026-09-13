@@ -60,6 +60,8 @@ const getCenter =
         .map(l => l.reduce((a, b) => a+b)/x.length),
 )
 
+const color = Dist.t`oklch(${Dist.f(x => 0.5+x*0.4)} 0.1 ${Dist.range(0, 360)})`
+
 export const render =
 (cityPoint: CityPoint) => {
     const districts = cityPoint.getDistricts()
@@ -81,17 +83,28 @@ export const render =
                 d="${getBorders(realm)}"
                 stroke="black"
                 stroke-width="${[0.2, 0.1, 0.02][-realm.depth]}"
-                fill="${realm.liege ? "none" : `oklch(${Dist.f(x => 0.5+x*0.4).pick("")} 0.1 ${Dist.range(0, 360).pick("")})`}"
+                fill="${realm.liege ? "none" : color.pick(JSON.stringify(realm))}"
             />
-            <text x="${x+0.5}" y="${y+0.5}" font-size="1">
-                ${realm.depth == 0 ? ([
+        `}).join("")}
+        ${districts.toReversed().flat().filter(x => x.level > 0 || x.depth == 0).map(realm => {
+        const [x, y] = getCenter(realm)
+        return realm.depth == 0 ? `
+            <text x="${x+0.5}" y="${y+0.5}" font-size="0.4"
+                text-anchor="middle"
+                dominant-baseline="center"
+                font-family="sans-serif"
+                paint-order="stroke"
+                stroke="${color.pick(JSON.stringify(realm))}"
+                stroke-width="0.05"
+            >
+                ${[
                     "City",
                     "Barony",
                     "Duchy",
                     "Kingdom",
-                ][realm.level]+" "+realm.name) : ""}
+                ][realm.level]+" "+realm.name}
             </text>
-        `}).join("")}
+        ` : ""}).join("")}
     </svg>
     `
 }
