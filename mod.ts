@@ -147,14 +147,15 @@ const light = Dist.f(x => 0.5+x*0.3)
 const chroma = Dist.f(x => 0.05+x*0.12)
 
 const res: Plane<[number, number, number, number]> = leveled
+    .map(v => v?.reverse())
     .map(v =>
         [...oklch.rgb(
             light.pick(""+v![1])
-            +tweak.pick(""+v![0]),
-            v == undefined
-                ? 0
+            +tweak.pick(""+v![2]),
+            v!.length < 3
+                ? 0.05
                 : 0.1,
-            hue.pick(""+v![2]),
+            hue.pick(""+v![0]),
         ), 255]
     )
 await Deno.writeFile("district.png",
