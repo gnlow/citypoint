@@ -58,3 +58,5 @@ districts[1].filter(x => !x.liege).forEach(barony => {
     console.log(`Free Barony ${barony.name}: ${barony.population}`)
 })
 
+import { render } from "./src/web.ts"
+await Deno.writeTextFile("district.svg", render(cityPoint))
