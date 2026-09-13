@@ -151,7 +151,9 @@ const res: Plane<[number, number, number, number]> = leveled
         [...oklch.rgb(
             light.pick(""+v![1])
             +tweak.pick(""+v![0]),
-            0.1,
+            v == undefined
+                ? 0
+                : 0.1,
             hue.pick(""+v![2]),
         ), 255]
     )
