@@ -2,8 +2,11 @@ import { CityPoint, City, Dist, Realm } from "../mod.ts"
 import { pipe, mod } from "https://gnlow.dev/util@0.1.2"
 
 const getBorders =
-(realm: Realm) => pipe(
-    realm.getChildrenOnLevel(0).map(x => (x as City).coordStr),
+(realm: Realm | City) => pipe(
+    realm,
+    r => r instanceof Realm
+        ? r.getChildrenOnLevel(0).map(x => (x as City).coordStr)
+        : [r.coordStr],
     coordStrs => coordStrs.map(s => {
         const [x, y] = s.split(";").map(Number)
         return [
@@ -58,17 +61,11 @@ export const render =
             stroke="black"
             stroke-width="0.2"
         />
-        ${districts[3].map(kingdom => `<path
-            d="${getBorders(kingdom)}"
+        ${districts.toReversed().flat().filter(x => x.level > 0 || x.depth == 0).map(realm => `<path
+            d="${getBorders(realm)}"
             stroke="black"
-            stroke-width="0.2"
-            fill="oklch(0.7 0.1 ${Dist.range(0, 360).pick("")})"
-        />`).join("")}
-        ${districts[2].map(duchy => `<path
-            d="${getBorders(duchy)}"
-            stroke="black"
-            stroke-width="0.1"
-            fill="none"
+            stroke-width="${[0.2, 0.1, 0.02][-realm.depth]}"
+            fill="${realm.liege ? "none" : `oklch(${Dist.f(x => 0.5+x*0.4).pick("")} 0.1 ${Dist.range(0, 360).pick("")})`}"
         />`).join("")}
     </svg>
     `

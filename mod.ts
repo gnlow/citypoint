@@ -138,6 +138,11 @@ export abstract class District {
                 .flatMap(child => child.getChildrenOnLevel(level))
                 .toArray()
     }
+    get depth(): number {
+        return this.liege
+            ? this.liege.depth-1
+            : 0
+    }
 }
 
 export class Realm extends District {
