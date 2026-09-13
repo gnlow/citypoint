@@ -113,15 +113,45 @@ const level =
     return res
 }
 
-const hue = Dist.range(0, 360).branch()
+const leveled = level([20e4, 80e4, 300e4])(plane)
+const genTree =
+(leveled: Plane<number[]>, pop: Plane<number>) => {
+    const a = Map.groupBy(leveled.raw.entries().map(([coord, path]) => ({
+        path,
+        pop: pop.raw.get(coord),
+        coord,
+    })), x => x.path[0])
+    const b = Map.groupBy(a.entries(), x => x[1][0].path[1])
+    const c = Map.groupBy(b.entries(), x => x[1][0][1][0].path[2])
+    c.entries().forEach(([kingdom, data]) => {
+        console.log(`Kingdom ${kingdom}`)
+        data.forEach(([duchy, data]) => {
+            console.log(`  Duchy ${duchy}`)
+            data.forEach(([barony, data]) => {
+                console.log(
+                    `    Barony ${barony}:`,
+                    data.map((o) => {
+                        // console.log(`      City ${o.coord}:`, o.pop)
+                        return o.pop
+                    }).reduce((a, b) => a!+b!),
+                )
+            })
+        })
+    })
+}
+console.log(genTree(leveled, plane))
+
+const hue = Dist.range(0, 360)
+const tweak = Dist.n(0, 0.01)
 const light = Dist.f(x => 0.5+x*0.3)
 const chroma = Dist.f(x => 0.05+x*0.12)
 
-const res: Plane<[number, number, number, number]> = level([20e4, 80e4, 300e4])(plane)
+const res: Plane<[number, number, number, number]> = leveled
     .map(v =>
         [...oklch.rgb(
-            light.pick(""+v![1]),
-            chroma.pick(""+v![0]),
+            light.pick(""+v![1])
+            +tweak.pick(""+v![0]),
+            0.1,
             hue.pick(""+v![2]),
         ), 255]
     )
