@@ -1,6 +1,7 @@
-import { Plane } from "https://gnlow.dev/plane@0.1.4"
+import { Plane } from "https://gnlow.dev/plane@0.1.5"
 import { Dist } from "https://raw.esm.sh/gh/gnlow/disty@0.5.0/mod.ts"
 import { arr, mod } from "https://gnlow.dev/util@0.1.2"
+import * as oklch from "https://gnlow.dev/oklch@0.1.3"
 
 export const grow =
 (n = 100) =>
@@ -48,17 +49,11 @@ const isNeighbor =
 
 const district =
 (max: number) =>
-(plane: Plane<number>) => {
-    let sections: {
-        set: Set<string>,
-        sum: number,
-    }[] = plane.raw.entries().toArray()
-        .toSorted((a, b) => a[1]-b[1])
-        .map(([c, n]) => ({
-            set: new Set([c]),
-            sum: n,
-        }))
-    
+(sections: {
+    set: Set<string>,
+    sum: number,
+}[]) => {
+    sections = structuredClone(sections)
     const completed: {
         set: Set<string>,
         sum: number,
@@ -86,17 +81,50 @@ const district =
         const newIndex = sections.findIndex(section => section.sum > merged.sum)
         sections.splice(newIndex, 0, merged)
     }
-    const dis = new Plane<[number, number, number, number]>(plane.w, plane.h)
-    completed.forEach(section => {
-        const color = [...arr(3).map(x => Math.floor(Math.random()*255)), 255] as [number, number, number, number]
-        section.set.values().forEach(coordStr => {
-            dis.raw.set(coordStr, color)
-        })
-    })
-    return dis
+    return completed
 }
 
-const res = district(800000)(plane)
+const level =
+(maxs: number[]) =>
+(plane: Plane<number>) => {
+    const sections = plane.raw.entries().toArray()
+        .toSorted((a, b) => a[1]-b[1])
+        .map(([c, n]) => ({
+            set: new Set([c]),
+            sum: n,
+        }))
+    const res = new Plane<number[]>(
+        plane.w,
+        plane.h,
+    ).map(() => [] as number[])
+    
+    maxs.reduce(
+        (sections, max) => {
+            const completed = district(max)(sections)
+            completed.forEach((section, id) =>
+                section.set.values().forEach(c =>
+                    res.raw.get(c)!.push(id)
+                )
+            )
+            return completed
+        },
+        sections,
+    )
+    return res
+}
+
+const hue = Dist.range(0, 360).branch()
+const light = Dist.f(x => 0.5+x*0.3)
+const chroma = Dist.f(x => 0.05+x*0.12)
+
+const res: Plane<[number, number, number, number]> = level([20e4, 80e4, 300e4])(plane)
+    .map(v =>
+        [...oklch.rgb(
+            light.pick(""+v![1]),
+            chroma.pick(""+v![0]),
+            hue.pick(""+v![2]),
+        ), 255]
+    )
 await Deno.writeFile("district.png",
     res.upscale(10).toPng()
 )
