@@ -1,7 +1,7 @@
 import { Plane } from "https://gnlow.dev/plane@0.1.5"
 import { Dist } from "https://raw.esm.sh/gh/gnlow/disty@0.5.0/mod.ts"
 import { arr, mod } from "https://gnlow.dev/util@0.1.2"
-import * as oklch from "https://gnlow.dev/oklch@0.1.3"
+export { Plane, arr, Dist }
 
 export const grow =
 (n = 100) =>
@@ -17,23 +17,8 @@ export const grow =
         plane.add([x1, y1], Math.floor(cnt*0.5))
     })
 }
-const w = 40
-const h = 20
-const plane = new Plane<number>(w, h)
 
-arr(w).forEach(x => arr(h).forEach(y =>
-    plane.set([x, y], 100)
-))
-
-grow(w*h*10)(plane)
-
-console.log(plane.raw.values().toArray().toSorted((a, b)=>b-a))
-await Deno.writeFile("mod.png",
-    plane.map(n => Math.log(n || 1)/6*255)
-    .grayscale().upscale(10).toPng()
-)
-
-const isNeighbor =
+export const isNeighbor =
 (a: Set<string>, b: Set<string>): boolean =>
     a.size <= b.size
         ? 0 < new Set(a.values().flatMap(s => {
@@ -47,7 +32,7 @@ const isNeighbor =
         })).intersection(b).size
         : isNeighbor(b, a)
 
-const district =
+export const district =
 (max: number) =>
 (sections: {
     set: Set<string>,
@@ -84,7 +69,7 @@ const district =
     return completed
 }
 
-const level =
+export const level =
 (maxs: number[]) =>
 (plane: Plane<number>) => {
     const sections = plane.raw.entries().toArray()
@@ -113,8 +98,7 @@ const level =
     return res
 }
 
-const leveled = level([20e4, 80e4, 300e4])(plane)
-const genTree =
+export const genTree =
 (leveled: Plane<number[]>, pop: Plane<number>) => {
     const a = Map.groupBy(leveled.raw.entries().map(([coord, path]) => ({
         path,
@@ -139,25 +123,3 @@ const genTree =
         })
     })
 }
-console.log(genTree(leveled, plane))
-
-const hue = Dist.range(0, 360)
-const tweak = Dist.n(0, 0.01)
-const light = Dist.f(x => 0.5+x*0.3)
-const chroma = Dist.f(x => 0.05+x*0.12)
-
-const res: Plane<[number, number, number, number]> = leveled
-    .map(v => v?.reverse())
-    .map(v =>
-        [...oklch.rgb(
-            light.pick(""+v![1])
-            +tweak.pick(""+v![2]),
-            v!.length < 3
-                ? 0.05
-                : 0.1,
-            hue.pick(""+v![0]),
-        ), 255]
-    )
-await Deno.writeFile("district.png",
-    res.upscale(10).toPng()
-)
