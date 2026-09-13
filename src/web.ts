@@ -1,12 +1,16 @@
 import { CityPoint, City, Dist, Realm } from "../mod.ts"
 import { pipe, mod } from "https://gnlow.dev/util@0.1.2"
 
+const getAreas =
+(r: Realm | City) =>
+    r instanceof Realm
+        ? r.getChildrenOnLevel(0).map(x => (x as City).coordStr)
+        : [r.coordStr]
+
 const getBorders =
 (realm: Realm | City) => pipe(
     realm,
-    r => r instanceof Realm
-        ? r.getChildrenOnLevel(0).map(x => (x as City).coordStr)
-        : [r.coordStr],
+    getAreas,
     coordStrs => coordStrs.map(s => {
         const [x, y] = s.split(";").map(Number)
         return [
@@ -47,6 +51,15 @@ const getBorders =
     }Z`,
 )
 
+const getCenter =
+(r: Realm | City) => pipe(
+    r,
+    getAreas,
+    x => x.map(s => s.split(";").map(Number)),
+    x => [x.map(x => x[0]), x.map(x => x[1])]
+        .map(l => l.reduce((a, b) => a+b)/x.length),
+)
+
 export const render =
 (cityPoint: CityPoint) => {
     const districts = cityPoint.getDistricts()
@@ -61,12 +74,24 @@ export const render =
             stroke="black"
             stroke-width="0.2"
         />
-        ${districts.toReversed().flat().filter(x => x.level > 0 || x.depth == 0).map(realm => `<path
-            d="${getBorders(realm)}"
-            stroke="black"
-            stroke-width="${[0.2, 0.1, 0.02][-realm.depth]}"
-            fill="${realm.liege ? "none" : `oklch(${Dist.f(x => 0.5+x*0.4).pick("")} 0.1 ${Dist.range(0, 360).pick("")})`}"
-        />`).join("")}
+        ${districts.toReversed().flat().filter(x => x.level > 0 || x.depth == 0).map(realm => {
+        const [x, y] = getCenter(realm)
+        return `
+            <path
+                d="${getBorders(realm)}"
+                stroke="black"
+                stroke-width="${[0.2, 0.1, 0.02][-realm.depth]}"
+                fill="${realm.liege ? "none" : `oklch(${Dist.f(x => 0.5+x*0.4).pick("")} 0.1 ${Dist.range(0, 360).pick("")})`}"
+            />
+            <text x="${x+0.5}" y="${y+0.5}" font-size="1">
+                ${realm.depth == 0 ? ([
+                    "City",
+                    "Barony",
+                    "Duchy",
+                    "Kingdom",
+                ][realm.level]+" "+realm.name) : ""}
+            </text>
+        `}).join("")}
     </svg>
     `
 }
