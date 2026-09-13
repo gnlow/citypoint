@@ -35,3 +35,26 @@ await Deno.writeFile("district.png",
     res.upscale(10).toPng()
 )
 
+const districts = cityPoint.getDistricts()
+
+districts[3].forEach(kingdom => {
+    console.log(`Kingdom ${kingdom.name}: ${kingdom.population}`)
+    kingdom.children.forEach(duchy => {
+        console.log(`  Duchy ${duchy.name}: ${duchy.population}`)
+        duchy.children.forEach(barony => {
+            console.log(`    Barony ${barony.name}: ${barony.population}`)
+        })
+    })
+})
+
+districts[2].filter(x => !x.liege).forEach(duchy => {
+    console.log(`Free Duchy ${duchy.name}: ${duchy.population}`)
+    duchy.children.forEach(barony => {
+        console.log(`  Barony ${barony.name}: ${barony.population}`)
+    })
+})
+
+districts[1].filter(x => !x.liege).forEach(barony => {
+    console.log(`Free Barony ${barony.name}: ${barony.population}`)
+})
+

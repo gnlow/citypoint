@@ -124,6 +124,35 @@ export const genTree =
     })
 }
 
+abstract class District {
+    abstract name: string
+    abstract population: number
+    abstract children: Set<District>
+    abstract liege?: District
+}
+
+class Realm extends District {
+    constructor(
+        public name: string,
+        public children: Set<District>,
+        public liege?: District,
+    ) { super() }
+    get population() {
+        return this.children.values()
+            .map(x => x.population)
+            .reduce((a, b) => a+b)
+    }
+}
+
+class City extends District {
+    constructor(
+        public name: string,
+        public population: number,
+        public liege?: District,
+    ) { super() }
+    children = new Set<District>
+}
+
 export class CityPoint {
     readonly w
     readonly h
@@ -158,5 +187,26 @@ export class CityPoint {
         
         this.valuePlane = plane
         this.districtPlane = leveled
+    }
+    getDistricts() {
+        const entries = this.districtPlane.raw.entries()
+        const cities = [] as City[]
+        const districtMaps = this.levels.map((_, i) => new Map<number, District>)
+        entries.forEach(([coord, path]) => {
+            const city = new City(coord, this.valuePlane.raw.get(coord)!)
+            cities.push(city)
+            path.reverse().forEach((id, level) => {
+                const liege = districtMaps[level]?.getOrInsert(id, new Realm(""+id, new Set))
+                const child = 
+                    districtMaps[level-1]?.getOrInsert(path[level-1], new Realm(""+path[level-1], new Set))
+                    ?? city
+                child.liege = liege
+                liege.children.add(child)
+            })
+        })
+        return [
+            cities,
+            ...districtMaps.map(x => x.values().toArray())
+        ]
     }
 }
