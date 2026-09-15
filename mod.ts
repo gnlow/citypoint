@@ -2,6 +2,7 @@ import { Plane } from "https://gnlow.dev/plane@0.1.5"
 import { Dist } from "https://raw.esm.sh/gh/gnlow/disty@0.5.0/mod.ts"
 import { arr, mod } from "https://gnlow.dev/util@0.1.2"
 export { Plane, arr, Dist }
+export * from "./src/web.ts"
 
 export const grow =
 (n = 100) =>
