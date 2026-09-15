@@ -213,7 +213,6 @@ export class CityPoint {
         const cities = [] as City[]
         const districtMaps = this.levels.map((_, i) => new Map<number, District>)
         entries.forEach(([coord, path]) => {
-            path = path.toReversed()
             const city = new City(coord, this.valuePlane.raw.get(coord)!, coord)
             cities.push(city)
             path.forEach((id, level) => {

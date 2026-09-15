@@ -20,7 +20,7 @@ const tweak = Dist.n(0, 0.01)
 const light = Dist.f(x => 0.5+x*0.3)
 
 const res: Plane<[number, number, number, number]> = cityPoint.districtPlane
-    .map(v => v?.reverse())
+    .map(v => v?.toReversed())
     .map(v =>
         [...oklch.rgb(
             light.pick(""+v![1])
