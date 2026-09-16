@@ -89,7 +89,7 @@ export const render =
         ${districts.toReversed().flat().filter(x => x.level > 0 || x.depth == 0).map(realm => {
         const [x, y] = getCenter(realm)
         return realm.depth == 0 ? `
-            <text x="${x+0.5}" y="${y+0.5}" font-size="0.4"
+            <text x="${x+0.5}" y="${y+0.4+(x%2)*0.4}" font-size="0.4"
                 text-anchor="middle"
                 dominant-baseline="center"
                 font-family="sans-serif"
